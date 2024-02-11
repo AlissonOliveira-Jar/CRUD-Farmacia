@@ -19,6 +19,3 @@ namespace CRUD_Farmacia.DataAccess
         }
     }
 }
-
-
-

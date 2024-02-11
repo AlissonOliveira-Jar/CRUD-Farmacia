@@ -1,7 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
 using CRUD_Farmacia.Models;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static CRUD_Farmacia.DataAccess.DataAccess;
 
@@ -20,9 +18,31 @@ namespace CRUD_Farmacia.Controllers
 
         // GET: api/Loja
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Loja>>> GetLojas()
+        public async Task<ActionResult<IEnumerable<Loja>>> GetLojas(
+          [FromQuery] int page = 1,
+          [FromQuery] int pageSize = 10,
+          [FromQuery] string? sort = null)
         {
-            return await _context.Lojas.ToListAsync();
+            var query = _context.Lojas.AsQueryable();
+
+            // Ordenação
+            if (!string.IsNullOrEmpty(sort))
+            {
+                switch (sort)
+                {
+                    case "nome":
+                        query = query.OrderBy(l => l.Nome);
+                        break;
+                    case "telefone":
+                        query = query.OrderBy(l => l.Telefone);
+                        break;
+                }
+            }
+
+            // Paginação
+            var lojas = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return Ok(lojas);
         }
 
         // GET: api/Loja/5
@@ -43,14 +63,9 @@ namespace CRUD_Farmacia.Controllers
         [HttpPost]
         public async Task<ActionResult<Loja>> PostLoja(Loja loja)
         {
-            if (await _context.Lojas.AnyAsync(l => l.Nome == loja.Nome))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Já existe uma loja com este nome.");
-            }
-
-            if (!string.IsNullOrEmpty(loja.Telefone) && !Regex.IsMatch(loja.Telefone, @"^\d+$"))
-            {
-                return BadRequest("O telefone da loja deve conter apenas números.");
+                return BadRequest(ModelState);
             }
 
             _context.Lojas.Add(loja);
@@ -68,15 +83,9 @@ namespace CRUD_Farmacia.Controllers
                 return BadRequest();
             }
 
-            // Validação de regras de negócio
-            if (await _context.Lojas.AnyAsync(l => l.Nome == loja.Nome && l.Id != loja.Id))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Já existe uma loja com este nome.");
-            }
-
-            if (!string.IsNullOrEmpty(loja.Telefone) && !Regex.IsMatch(loja.Telefone, @"^\d+$"))
-            {
-                return BadRequest("O telefone da loja deve conter apenas números.");
+                return BadRequest(ModelState);
             }
 
             _context.Entry(loja).State = EntityState.Modified;

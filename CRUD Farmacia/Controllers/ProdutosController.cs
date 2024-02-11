@@ -1,5 +1,4 @@
-﻿using CRUD_Farmacia.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static CRUD_Farmacia.DataAccess.DataAccess;
 
@@ -27,14 +26,27 @@ namespace CRUD_Farmacia.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Produto>> GetProduto(int id)
         {
-            return await GetProdutoByIdAsync(id);
+            var produto = await GetProdutoByIdAsync(id);
+            if (produto == null)
+            {
+                return NotFound();
+            }
+            return Ok(produto);
         }
 
         // POST: api/Produto
         [HttpPost]
         public async Task<ActionResult<Produto>> PostProduto(Produto produto)
         {
-            return await CreateProdutoAsync(produto);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Produtos.Add(produto);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, produto);
         }
 
         // PUT: api/Produto/5
@@ -58,16 +70,22 @@ namespace CRUD_Farmacia.Controllers
 
         private async Task<ActionResult<Produto>> GetProdutoByIdAsync(int id)
         {
-            var produto = await _context.Produtos.FindAsync(id);
+            var produtoTask = _context.Produtos.FindAsync(id);
+            var produto = await Task.Run(() => produtoTask.Result);
             if (produto == null)
             {
                 return NotFound();
             }
-            return produto;
+            return Ok(produto);
         }
 
-        private async Task<ActionResult<Produto>> CreateProdutoAsync(Produto produto)
+        private async Task<IActionResult> CreateProdutoAsync(Produto produto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, produto);
