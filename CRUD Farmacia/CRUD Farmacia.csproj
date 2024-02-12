@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <RootNamespace>CRUD_Farmacia</RootNamespace>
+    <UserSecretsId>1814f933-e8db-4180-94ce-9bae9dbc66cd</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

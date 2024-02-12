@@ -1,4 +1,6 @@
 
+using static CRUD_Farmacia.DataAccess.DataAccess;
+
 namespace CRUD_Farmacia
 {
     public class Program
@@ -13,6 +15,7 @@ namespace CRUD_Farmacia
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContext<FarmaciaContext>();
 
             var app = builder.Build();
 

@@ -7,6 +7,13 @@ namespace CRUD_Farmacia.DataAccess
     {
         public class FarmaciaContext : DbContext
         {
+            private IConfiguration _configuration;
+
+            public FarmaciaContext(IConfiguration configuration)
+            {
+                _configuration = configuration;
+            }
+
             public DbSet<Loja> Lojas { get; set; }
             public DbSet<Produto> Produtos { get; set; }
             public DbSet<Estoque> Estoques { get; set; }
@@ -23,7 +30,13 @@ namespace CRUD_Farmacia.DataAccess
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                optionsBuilder.UseSqlServer("Data Source=localhost;Initial Catalog=Farmacia;Integrated Security=True");
+                var typeDatabase = _configuration["TypeDatabase"];
+                var connectionString = _configuration.GetConnectionString(typeDatabase);
+
+                if (typeDatabase == "SqlServer")
+                {
+                    optionsBuilder.UseSqlServer(connectionString);
+                }
             }
         }
     }
